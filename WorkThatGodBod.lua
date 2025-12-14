@@ -74,7 +74,7 @@ local ENABLED = true
 -------------------------------------------------
 local function chat(text)
   if DEFAULT_CHAT_FRAME then
-    DEFAULT_CHAT_FRAME:AddMessage("|cff55ff88GodBod:|r " .. text)
+    DEFAULT_CHAT_FRAME:AddMessage("|cffff8000GodBod: " .. text .. "|r")
   end
 end
 
