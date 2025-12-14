@@ -1,7 +1,7 @@
 ## Interface: 11200
 ## Title: WorkThatGodBod
 ## Notes: Gentle reminders to hydrate, move, and fix posture while you play.
-## Author: Alexander
+## Author: Babunigaming
 ## Version: 0.1
 ## SavedVariables: WorkThatGodBodDB
 
