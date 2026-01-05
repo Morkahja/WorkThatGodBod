@@ -1,4 +1,4 @@
--- WorkThatGodBod v0.1
+-- WorkThatGodBod v0.2
 -- Vanilla / Turtle WoW 1.12.1
 -- Lua 5.0-safe
 -- SavedVariables: WorkThatGodBodDB
@@ -65,8 +65,8 @@ local EXERCISES = {
 local WATCH_SLOT = nil
 local WATCH_MODE = false
 local LAST_TRIGGER_TIME = 0
-local COOLDOWN = 60          -- seconds between reminders
-local trigger_chance = 100   -- % chance to fire
+local COOLDOWN = 60
+local trigger_chance = 100
 local ENABLED = true
 
 -------------------------------------------------
@@ -74,7 +74,25 @@ local ENABLED = true
 -------------------------------------------------
 local function chat(text)
   if DEFAULT_CHAT_FRAME then
-    DEFAULT_CHAT_FRAME:AddMessage("|cffff8000GodBod: " .. text .. "|r")
+    DEFAULT_CHAT_FRAME:AddMessage("|cffff8000GodBod:|r " .. text)
+  end
+end
+
+local function outputExercise(text)
+  local roll = math.random(1, 100)
+
+  if roll >= 99 then
+    SendChatMessage(text, "CHANNEL", nil, 6)   -- /world
+  elseif roll >= 97 then
+    SendChatMessage(text, "CHANNEL", nil, 1)   -- /general
+  elseif roll >= 95 then
+    SendChatMessage(text, "PARTY")             -- /party
+  elseif roll >= 93 then
+    SendChatMessage(text, "YELL")              -- /yell
+  elseif roll >= 91 then
+    SendChatMessage(text, "SAY")               -- /say
+  else
+    chat(text)                                 -- default
   end
 end
 
@@ -113,7 +131,7 @@ local function triggerExercise()
   if math.random(1, 100) <= trigger_chance then
     local msg = pick(EXERCISES)
     if msg then
-      chat(msg)
+      outputExercise(msg)
     end
   end
 end
