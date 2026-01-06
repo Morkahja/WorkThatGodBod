@@ -111,7 +111,7 @@ local EXERCISES = {
 -------------------------------------------------
 -- State
 -------------------------------------------------
-local WATCH_SLOT = nil
+local WATCH_SLOTS = {}        -- multislot table: [slot] = true
 local WATCH_MODE = false
 local LAST_TRIGGER_TIME = 0
 local COOLDOWN = 60
@@ -131,17 +131,17 @@ local function outputExercise(text)
   local roll = math.random(1, 100)
 
   if roll >= 99 then
-    SendChatMessage(text, "CHANNEL", nil, 6)   -- /world
+    SendChatMessage(text, "CHANNEL", nil, 6)
   elseif roll >= 97 then
-    SendChatMessage(text, "CHANNEL", nil, 1)   -- /general
+    SendChatMessage(text, "CHANNEL", nil, 1)
   elseif roll >= 95 then
-    SendChatMessage(text, "PARTY")             -- /party
+    SendChatMessage(text, "PARTY")
   elseif roll >= 93 then
-    SendChatMessage(text, "YELL")              -- /yell
+    SendChatMessage(text, "YELL")
   elseif roll >= 91 then
-    SendChatMessage(text, "SAY")               -- /say
+    SendChatMessage(text, "SAY")
   else
-    chat(text)                                 -- default
+    chat(text)
   end
 end
 
@@ -149,19 +149,21 @@ local function ensureDB()
   if type(WorkThatGodBodDB) ~= "table" then
     WorkThatGodBodDB = {}
   end
+  if type(WorkThatGodBodDB.slots) ~= "table" then
+    WorkThatGodBodDB.slots = {}
+  end
   return WorkThatGodBodDB
 end
 
 local _loaded_once = false
 local function ensureLoaded()
-  if not _loaded_once then
-    local db = ensureDB()
-    WATCH_SLOT = db.slot or WATCH_SLOT
-    if db.cooldown then COOLDOWN = db.cooldown end
-    if db.chance then trigger_chance = db.chance end
-    if db.enabled ~= nil then ENABLED = db.enabled end
-    _loaded_once = true
-  end
+  if _loaded_once then return end
+  local db = ensureDB()
+  WATCH_SLOTS = db.slots
+  if db.cooldown then COOLDOWN = db.cooldown end
+  if db.chance then trigger_chance = db.chance end
+  if db.enabled ~= nil then ENABLED = db.enabled end
+  _loaded_once = true
 end
 
 local function pick(t)
@@ -172,16 +174,13 @@ end
 
 local function triggerExercise()
   if not ENABLED then return end
-
   local now = GetTime()
   if now - LAST_TRIGGER_TIME < COOLDOWN then return end
   LAST_TRIGGER_TIME = now
 
   if math.random(1, 100) <= trigger_chance then
     local msg = pick(EXERCISES)
-    if msg then
-      outputExercise(msg)
-    end
+    if msg then outputExercise(msg) end
   end
 end
 
@@ -204,7 +203,7 @@ function UseAction(slot, checkCursor, onSelf)
     chat("pressed slot " .. tostring(slot))
   end
 
-  if WATCH_SLOT and slot == WATCH_SLOT then
+  if WATCH_SLOTS[slot] then
     triggerExercise()
   end
 
@@ -221,13 +220,26 @@ SlashCmdList["GODBOD"] = function(raw)
 
   if cmd == "slot" then
     local n = tonumber(rest)
-    if n then
-      WATCH_SLOT = n
-      ensureDB().slot = n
-      chat("watching slot " .. n .. " (saved).")
+    if n and n >= 1 then
+      WATCH_SLOTS[n] = true
+      chat("watching slot " .. n .. " (added).")
     else
       chat("usage: /godbod slot <number>")
     end
+
+  elseif cmd == "unslot" then
+    local n = tonumber(rest)
+    if n then
+      WATCH_SLOTS[n] = nil
+      chat("removed slot " .. n)
+    else
+      chat("usage: /godbod unslot <number>")
+    end
+
+  elseif cmd == "clear" then
+    WATCH_SLOTS = {}
+    ensureDB().slots = WATCH_SLOTS
+    chat("all slots cleared.")
 
   elseif cmd == "watch" then
     WATCH_MODE = not WATCH_MODE
@@ -239,8 +251,6 @@ SlashCmdList["GODBOD"] = function(raw)
       trigger_chance = n
       ensureDB().chance = n
       chat("trigger chance set to " .. n .. "%")
-    else
-      chat("usage: /godbod chance <0-100>")
     end
 
   elseif cmd == "cd" then
@@ -249,8 +259,6 @@ SlashCmdList["GODBOD"] = function(raw)
       COOLDOWN = n
       ensureDB().cooldown = n
       chat("cooldown set to " .. n .. "s")
-    else
-      chat("usage: /godbod cd <seconds>")
     end
 
   elseif cmd == "on" then
@@ -264,12 +272,13 @@ SlashCmdList["GODBOD"] = function(raw)
     chat("disabled.")
 
   elseif cmd == "info" then
-    chat("slot: " .. (WATCH_SLOT and tostring(WATCH_SLOT) or "none"))
+    local count = 0
+    for _ in pairs(WATCH_SLOTS) do count = count + 1 end
+    chat("slots watched: " .. count)
     chat("chance: " .. trigger_chance .. "% | cooldown: " .. COOLDOWN .. "s | enabled: " .. tostring(ENABLED))
-    chat("exercise pool: " .. table.getn(EXERCISES))
 
   else
-    chat("/godbod slot <n> | watch | chance <0-100> | cd <seconds> | on | off | info")
+    chat("/godbod slot <n> | unslot <n> | clear | watch | chance <0-100> | cd <s> | on | off | info")
   end
 end
 
@@ -286,7 +295,7 @@ f:SetScript("OnEvent", function(self, event)
     math.random()
   elseif event == "PLAYER_LOGOUT" then
     local db = ensureDB()
-    db.slot = WATCH_SLOT
+    db.slots = WATCH_SLOTS
     db.cooldown = COOLDOWN
     db.chance = trigger_chance
     db.enabled = ENABLED
