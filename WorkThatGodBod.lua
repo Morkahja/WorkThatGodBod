@@ -56,7 +56,7 @@ local EXERCISES = {
   "Raise arms. Inhale. Lower arms. Exhale. Repeat.",
   "Balance on one leg with eyes closed. Briefly.",
   "Reset your posture: feet, hips, ribs, head aligned.",
-  "Move with intention for one full minute."
+  "Move with intention for one full minute.",
   "Slowly tilt your head ear to shoulder. Switch sides.",
 "Clench fists for five seconds. Release fully.",
 "Press your feet into the floor. Feel the ground.",
