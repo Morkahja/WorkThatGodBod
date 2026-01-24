@@ -1,8 +1,8 @@
 ## Interface: 11200
 ## Title: WorkThatGodBod
-## Notes: Gentle reminders to hydrate, move, and fix posture while you play.
-## Author: Babunigaming
-## Version: 0.1
+## Notes: Gentle in-world movement and posture reminders triggered by action buttons.
+## Author: babunigaming
+## Version: 1.1
 ## SavedVariables: WorkThatGodBodDB
 
 WorkThatGodBod.lua
