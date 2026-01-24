@@ -21,7 +21,7 @@ Shows which action bar slot you press, so you can identify the slot number.
 /godbod slot <number>  
 Sets the action bar slot that triggers reminders.
 
-/godbod cd <seconds>  
+/godbod timer <seconds>  
 Sets the minimum time between reminders.
 
 /godbod chance <0-100>  
